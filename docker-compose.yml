@@ -1,21 +1,25 @@
 version: "3.3"
 services:
   database1:
-    image: wnameless/oracle-xe-11g-r2
+    build: ./database1/
     environment:
       ORACLE_ALLOW_REMOTE: 'true'
       GLOBAL_NAMES: 'true'
   database2:
-    image: wnameless/oracle-xe-11g-r2
+    build: ./database2/
     environment:
       ORACLE_ALLOW_REMOTE: 'true'
       GLOBAL_NAMES: 'true'
   database3:
-    image: wnameless/oracle-xe-11g-r2
+    build: ./database3/
     environment:
       ORACLE_ALLOW_REMOTE: 'true'
       GLOBAL_NAMES: 'true'
   database_main:
+    depends_on:
+      - database1
+      - database2
+      - database3
     build: .
     ports:
       - 49164:1521
