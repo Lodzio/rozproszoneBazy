@@ -3,7 +3,6 @@ CREATE TABLE SYSTEM.Sklep
   ulica varchar2(50) NOT NULL,
   Miasto varchar2(50) NOT NULL,
   NrLokalu number(5) NOT NULL,
-  PRIMARY KEY (id),
 );
 
 CREATE TABLE SYSTEM.MieszankaZiołowa
