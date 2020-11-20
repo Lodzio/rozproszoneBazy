@@ -44,8 +44,28 @@ CREATE TABLE SYSTEM.MieszankaZiolowa
 ( id number(10) NOT NULL,
   Nazwa varchar2(50) NOT NULL,
   Sklep number(10) NOT NULL,
-  Dostepnosc number(1),
+  Dostepnosc number(3),
   Cena number(5),
   PRIMARY KEY (id),
   FOREIGN KEY (Sklep) references SYSTEM.Sklep(id)
 );
+
+
+INSERT INTO SYSTEM.Sklep(id,ulica,Miasto,NrLokalu) Values('63','Malinowa','Wroclaw','51');
+INSERT INTO SYSTEM.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena) Values('961','Rozgrzejsie','63','1','29');
+
+UPDATE SYSTEM.Sklep
+    SET Miasto = 'NEW YORK' 
+    WHERE id = 1; 
+UPDATE SYSTEM.MieszankaZiolowa
+    SET Dostepnosc = 0
+    WHERE id = 1; 
+
+
+
+
+
+
+
+
+
