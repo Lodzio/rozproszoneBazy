@@ -16,7 +16,7 @@ CREATE USER Administrator
   IDENTIFIED BY admin123
   DEFAULT TABLESPACE adm_perm_01
   TEMPORARY TABLESPACE adm_temp_01
-  QUOTA 20M on adm_perm_01
+  QUOTA 20M on adm_perm_01;
 
 CREATE TABLE Administrator.booking
 ( customer_id number(10) NOT NULL,
@@ -24,6 +24,14 @@ CREATE TABLE Administrator.booking
   city varchar2(50)
 );
 
-UPDATE SYSTEM.Sklep@database1
+GRANT create session TO Administrator;
+GRANT create table TO Administrator;
+GRANT create view TO Administrator;
+GRANT create any trigger TO Administrator;
+GRANT create any procedure TO Administrator;
+GRANT create sequence TO Administrator;
+GRANT create synonym TO Administrator;
+
+UPDATE Administrator1.Sklep@database1
     SET Miasto = 'Meh' 
     WHERE id = 63; 

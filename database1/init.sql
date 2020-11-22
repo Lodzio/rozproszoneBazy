@@ -1,4 +1,34 @@
-CREATE TABLE SYSTEM.Sklep
+CREATE PUBLIC DATABASE LINK database1 CONNECT TO system IDENTIFIED BY oracle USING 'database1';
+CREATE PUBLIC DATABASE LINK database2 CONNECT TO system IDENTIFIED BY oracle USING 'database2';
+CREATE PUBLIC DATABASE LINK database3 CONNECT TO system IDENTIFIED BY oracle USING 'database3';
+
+
+CREATE TABLESPACE adm1_perm_01
+  DATAFILE 'adm1_perm_01.dat' 
+    SIZE 20M
+  ONLINE;
+
+CREATE TEMPORARY TABLESPACE adm1_temp_01
+  TEMPFILE 'adm1_temp_01.dbf'
+    SIZE 5M
+    AUTOEXTEND ON;
+
+CREATE USER Administrator1
+  IDENTIFIED BY admin123
+  DEFAULT TABLESPACE adm1_perm_01
+  TEMPORARY TABLESPACE adm1_temp_01
+  QUOTA 20M on adm1_perm_01;
+
+GRANT create session TO Administrator1;
+GRANT create table TO Administrator1;
+GRANT create view TO Administrator1;
+GRANT create any trigger TO Administrator1;
+GRANT create any procedure TO Administrator1;
+GRANT create sequence TO Administrator1;
+GRANT create synonym TO Administrator1;
+
+
+CREATE TABLE Administrator1.Sklep
 ( id number(10) NOT NULL,
   ulica varchar2(50) NOT NULL,
   Miasto varchar2(50) NOT NULL,
@@ -6,7 +36,7 @@ CREATE TABLE SYSTEM.Sklep
   PRIMARY KEY (id)
 );
 
-CREATE TABLE SYSTEM.Nabywca
+CREATE TABLE Administrator1.Nabywca
 (
     id number(5) NOT NULL,
     Imie varchar2(20) NOT NULL,
@@ -17,7 +47,7 @@ CREATE TABLE SYSTEM.Nabywca
     PRIMARY KEY (id)
 );
 
-CREATE TABLE SYSTEM.Abonament
+CREATE TABLE Administrator1.Abonament
 (
     id number(5),
     Nazwa varchar2(20) NOT NULL,
@@ -26,7 +56,7 @@ CREATE TABLE SYSTEM.Abonament
     PRIMARY KEY (id)
 );
 
-CREATE TABLE SYSTEM.Zakup
+CREATE TABLE Administrator1.Zakup
 ( id number(10) NOT NULL,
   Sklep number(5),
   Mieszanka varchar2(50) NOT NULL,
@@ -35,37 +65,49 @@ CREATE TABLE SYSTEM.Zakup
   Zakupaabonamentu number(1),
   Rodzajabonamentu number(10),
   PRIMARY KEY (id),
-  FOREIGN KEY (Sklep) REFERENCES SYSTEM.Sklep(id),
-  FOREIGN KEY (Nabywca) REFERENCES SYSTEM.Nabywca(id),
-  FOREIGN KEY (Rodzajabonamentu) REFERENCES SYSTEM.Abonament(id)
+  FOREIGN KEY (Sklep) REFERENCES Administrator1.Sklep(id),
+  FOREIGN KEY (Nabywca) REFERENCES Administrator1.Nabywca(id),
+  FOREIGN KEY (Rodzajabonamentu) REFERENCES Administrator1.Abonament(id)
 );
 
-CREATE TABLE SYSTEM.MieszankaZiolowa
+CREATE TABLE Administrator1.MieszankaZiolowa
 ( id number(10) NOT NULL,
   Nazwa varchar2(50) NOT NULL,
   Sklep number(10) NOT NULL,
   Dostepnosc number(3),
   Cena number(5),
   PRIMARY KEY (id),
-  FOREIGN KEY (Sklep) references SYSTEM.Sklep(id)
+  FOREIGN KEY (Sklep) references Administrator1.Sklep(id)
 );
 
+INSERT INTO Administrator1.Sklep(id,ulica,Miasto,NrLokalu) Values('63','Malinowa','Wroclaw','51');
+INSERT INTO Administrator1.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena) Values('961','Rozgrzejsie','63','1','29');
 
-INSERT INTO SYSTEM.Sklep(id,ulica,Miasto,NrLokalu) Values('63','Malinowa','Wroclaw','51');
-INSERT INTO SYSTEM.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena) Values('961','Rozgrzejsie','63','1','29');
-
-UPDATE SYSTEM.Sklep
+UPDATE Administrator1.Sklep
     SET Miasto = 'NEW YORK' 
     WHERE id = 1; 
-UPDATE SYSTEM.MieszankaZiolowa
+UPDATE Administrator1.MieszankaZiolowa
     SET Dostepnosc = 0
     WHERE id = 1; 
 
+GRANT CREATE MATERIALIZED VIEW TO Administrator1;
+GRANT CREATE DATABASE LINK TO Administrator1;
 
+-- Reczny refresh
+-- CREATE SNAPSHOT Administrator1.Sklep
+--     SELECT * FROM Administrator2.Sklep@database2;
 
+-- BEGIN
+--    dbms_mview.refresh('SKLEP1', 'C');
+-- END;
 
+CREATE SNAPSHOT Administrator1.SklepRefresh
+refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
+        as select * from Administrator2.Sklep@database2;
 
+CREATE VIEW WIDOK AS 
+SELECT id,ulica,miasto,nrlokalu FROM Administrator1.Sklep
+UNION ALL
+SELECT id,ulica,miasto,nrlokalu FROM Administrator1.Skleprefresh;
 
-
-
-
+SELECT * FROM WIDOK 
