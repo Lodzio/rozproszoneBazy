@@ -18,12 +18,6 @@ CREATE USER Administrator
   TEMPORARY TABLESPACE adm_temp_01
   QUOTA 20M on adm_perm_01;
 
-CREATE TABLE Administrator.booking
-( customer_id number(10) NOT NULL,
-  customer_name varchar2(50) NOT NULL,
-  city varchar2(50)
-);
-
 GRANT create session TO Administrator;
 GRANT create table TO Administrator;
 GRANT create view TO Administrator;

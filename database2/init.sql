@@ -2,7 +2,6 @@ CREATE PUBLIC DATABASE LINK database1 CONNECT TO system IDENTIFIED BY oracle USI
 CREATE PUBLIC DATABASE LINK database2 CONNECT TO system IDENTIFIED BY oracle USING 'database2';
 CREATE PUBLIC DATABASE LINK database3 CONNECT TO system IDENTIFIED BY oracle USING 'database3';
 
-
 CREATE TABLESPACE adm2_perm_01
   DATAFILE 'adm2_perm_01.dat' 
     SIZE 20M
@@ -20,6 +19,7 @@ CREATE USER Administrator2
   QUOTA 20M on adm2_perm_01;
 
 GRANT create session TO Administrator2;
+GRANT create table TO Administrator2;
 GRANT create view TO Administrator2;
 GRANT create any trigger TO Administrator2;
 GRANT create any procedure TO Administrator2;
@@ -79,22 +79,62 @@ CREATE TABLE Administrator2.MieszankaZiolowa
   FOREIGN KEY (Sklep) references Administrator2.Sklep(id)
 );
 
-
 INSERT INTO Administrator2.Sklep(id,ulica,Miasto,NrLokalu) Values('63','Malinowa','Wroclaw','51');
 INSERT INTO Administrator2.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena) Values('961','Rozgrzejsie','63','1','29');
 
-UPDATE Administrator2.Sklep
-    SET Miasto = 'NEW YORK' 
-    WHERE id = 1; 
-UPDATE Administrator2.MieszankaZiolowa
-    SET Dostepnosc = 0
-    WHERE id = 1; 
+-- UPDATE Administrator2.Sklep
+--     SET Miasto = 'NEW YORK' 
+--     WHERE id = 1; 
+-- UPDATE Administrator2.MieszankaZiolowa
+--     SET Dostepnosc = 0
+--     WHERE id = 1; 
 
+GRANT CREATE MATERIALIZED VIEW TO Administrator2;
+GRANT CREATE DATABASE LINK TO Administrator2;
 
+CREATE SNAPSHOT Administrator2.SklepRefresh
+refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
+        as select * from Administrator1.Sklep@database1;
 
+CREATE VIEW Administrator2.WIDOK AS 
+SELECT id,ulica,miasto,nrlokalu FROM Administrator2.Sklep
+UNION ALL
+SELECT id,ulica,miasto,nrlokalu FROM Administrator2.Skleprefresh;
 
+SELECT * FROM Administrator2.WIDOK;
 
+--User
 
+CREATE TABLESPACE user2_perm_01
+  DATAFILE 'user2_perm_01.dat' 
+    SIZE 20M
+  ONLINE;
 
+CREATE TEMPORARY TABLESPACE user2_temp_01
+  TEMPFILE 'user2_temp_01.dbf'
+    SIZE 5M
+    AUTOEXTEND ON;
 
+CREATE USER User2
+  IDENTIFIED BY user123
+  DEFAULT TABLESPACE User2_perm_01
+  TEMPORARY TABLESPACE User2_temp_01
+  QUOTA 20M on User2_perm_01;
 
+GRANT create session TO User2;
+GRANT create view TO User2;
+GRANT create any trigger TO User2;
+GRANT create any procedure TO User2;
+GRANT create sequence TO User2;
+GRANT create synonym TO User2;
+GRANT SELECT ON Administrator2.widok
+   TO User2;
+
+CREATE DATABASE LINK userlink2
+CONNECT TO User2 IDENTIFIED BY user123
+USING 'database1';
+
+CREATE SYNONYM TowarySklep2
+   FOR Administrator2.widok;
+
+select * from TowarySklep2;

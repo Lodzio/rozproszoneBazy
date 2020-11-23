@@ -2,7 +2,6 @@ CREATE PUBLIC DATABASE LINK database1 CONNECT TO system IDENTIFIED BY oracle USI
 CREATE PUBLIC DATABASE LINK database2 CONNECT TO system IDENTIFIED BY oracle USING 'database2';
 CREATE PUBLIC DATABASE LINK database3 CONNECT TO system IDENTIFIED BY oracle USING 'database3';
 
-
 CREATE TABLESPACE adm1_perm_01
   DATAFILE 'adm1_perm_01.dat' 
     SIZE 20M
@@ -93,21 +92,49 @@ UPDATE Administrator1.MieszankaZiolowa
 GRANT CREATE MATERIALIZED VIEW TO Administrator1;
 GRANT CREATE DATABASE LINK TO Administrator1;
 
--- Reczny refresh
--- CREATE SNAPSHOT Administrator1.Sklep
---     SELECT * FROM Administrator2.Sklep@database2;
-
--- BEGIN
---    dbms_mview.refresh('SKLEP1', 'C');
--- END;
-
 CREATE SNAPSHOT Administrator1.SklepRefresh
 refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
         as select * from Administrator2.Sklep@database2;
 
-CREATE VIEW WIDOK AS 
+CREATE VIEW Administrator1.WIDOK AS 
 SELECT id,ulica,miasto,nrlokalu FROM Administrator1.Sklep
 UNION ALL
 SELECT id,ulica,miasto,nrlokalu FROM Administrator1.Skleprefresh;
 
-SELECT * FROM WIDOK 
+SELECT * FROM Administrator1.WIDOK;
+
+--User
+
+CREATE TABLESPACE user1_perm_01
+  DATAFILE 'user1_perm_01.dat' 
+    SIZE 20M
+  ONLINE;
+
+CREATE TEMPORARY TABLESPACE user1_temp_01
+  TEMPFILE 'user1_temp_01.dbf'
+    SIZE 5M
+    AUTOEXTEND ON;
+
+CREATE USER User1
+  IDENTIFIED BY user123
+  DEFAULT TABLESPACE user1_perm_01
+  TEMPORARY TABLESPACE user1_temp_01
+  QUOTA 20M on user1_perm_01;
+
+GRANT create session TO User1;
+GRANT create view TO User1;
+GRANT create any trigger TO User1;
+GRANT create any procedure TO User1;
+GRANT create sequence TO User1;
+GRANT create synonym TO User1;
+--GRANT SELECT ON Administrator1.widok
+--   TO User1;
+
+CREATE DATABASE LINK userlink1
+CONNECT TO USER1 IDENTIFIED BY user123
+USING 'database1';
+
+CREATE SYNONYM TowarySklep1
+   FOR Administrator1.widok;
+
+select * from TowarySklep1;
