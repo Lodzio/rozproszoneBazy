@@ -127,14 +127,15 @@ GRANT create any trigger TO User1;
 GRANT create any procedure TO User1;
 GRANT create sequence TO User1;
 GRANT create synonym TO User1;
---GRANT SELECT ON Administrator1.widok
---   TO User1;
+GRANT SELECT ON Administrator1.widok
+   TO User1;
 
 CREATE DATABASE LINK userlink1
 CONNECT TO USER1 IDENTIFIED BY user123
 USING 'database1';
 
-CREATE SYNONYM TowarySklep1
-   FOR Administrator1.widok;
+CREATE SYNONYM User1.TowarySklep1
+   FOR Administrator1.Sklep;
 
-select * from TowarySklep1;
+-- select * from User1.TowarySklep1;
+
