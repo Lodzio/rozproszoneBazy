@@ -26,6 +26,18 @@ GRANT create any procedure TO Administrator;
 GRANT create sequence TO Administrator;
 GRANT create synonym TO Administrator;
 
-UPDATE Administrator1.Sklep@database1
-    SET Miasto = 'Meh' 
-    WHERE id = 63; 
+CREATE TABLE Administrator.Abonament
+(
+    id number(10),
+    Nazwa varchar2(20) NOT NULL,
+    Okrestrwania Varchar2(20) NOT NULL,
+    Cena number(20) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+INSERT INTO Administrator.Abonament(id,Nazwa,Okrestrwania,Cena)
+Values('1','Premium Begginer','7','60');
+INSERT INTO Administrator.Abonament(id,Nazwa,Okrestrwania,Cena)
+Values('2','Premium Intermediate','7','160');
+INSERT INTO Administrator.Abonament(id,Nazwa,Okrestrwania,Cena)
+Values('3','Premium Proffesional','7','260');

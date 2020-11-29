@@ -1,6 +1,8 @@
 version: "3.3"
 services:
   database1:
+    depends_on:
+      - database_main    
     build: ./database1/
     environment:
       ORACLE_ALLOW_REMOTE: 'true'
@@ -22,10 +24,10 @@ services:
     ports:
       - 49167:1521
   database_main:
-    depends_on:
-      - database1
-      - database2
-      - database3
+#     depends_on:
+#      - database1
+#      - database2
+#      - database3
     build: .
     ports:
       - 49164:1521

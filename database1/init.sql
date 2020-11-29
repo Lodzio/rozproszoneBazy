@@ -1,6 +1,6 @@
-CREATE PUBLIC DATABASE LINK database1 CONNECT TO system IDENTIFIED BY oracle USING 'database1';
 CREATE PUBLIC DATABASE LINK database2 CONNECT TO system IDENTIFIED BY oracle USING 'database2';
 CREATE PUBLIC DATABASE LINK database3 CONNECT TO system IDENTIFIED BY oracle USING 'database3';
+CREATE PUBLIC DATABASE LINK database_main CONNECT TO system IDENTIFIED BY oracle USING 'database_main';
 
 CREATE TABLESPACE adm1_perm_01
   DATAFILE 'adm1_perm_01.dat' 
@@ -18,6 +18,9 @@ CREATE USER Administrator1
   TEMPORARY TABLESPACE adm1_temp_01
   QUOTA 20M on adm1_perm_01;
 
+GRANT CREATE MATERIALIZED VIEW TO Administrator1;
+GRANT CREATE DATABASE LINK TO Administrator1;
+
 GRANT create session TO Administrator1;
 GRANT create table TO Administrator1;
 GRANT create view TO Administrator1;
@@ -25,7 +28,6 @@ GRANT create any trigger TO Administrator1;
 GRANT create any procedure TO Administrator1;
 GRANT create sequence TO Administrator1;
 GRANT create synonym TO Administrator1;
-
 
 CREATE TABLE Administrator1.Sklep
 ( id number(10) NOT NULL,
@@ -39,21 +41,13 @@ CREATE TABLE Administrator1.Nabywca
 (
     id number(5) NOT NULL,
     Imie varchar2(20) NOT NULL,
-    Nazwisko Varchar2(20) NOT NULL,
+    Nazwisko Varchar2(24) NOT NULL,
     Numerkonta number(38) NOT NULL,
     Numertelefonu number (11) NOT NULL,
     Adresemail varchar2(23),
     PRIMARY KEY (id)
 );
 
-CREATE TABLE Administrator1.Abonament
-(
-    id number(5),
-    Nazwa varchar2(20) NOT NULL,
-    Okrestrwania Varchar2(20) NOT NULL,
-    Cena number(20) NOT NULL,
-    PRIMARY KEY (id)
-);
 
 CREATE TABLE Administrator1.MieszankaZiolowa
 ( id number(10) NOT NULL,
@@ -61,9 +55,16 @@ CREATE TABLE Administrator1.MieszankaZiolowa
   Sklep number(10) NOT NULL,
   Dostepnosc number(4),
   Cena number(5),
+  Zdjecie varchar2(150),
   PRIMARY KEY (id),
   FOREIGN KEY (Sklep) references Administrator1.Sklep(id)
 );
+
+CREATE SNAPSHOT Administrator1.Abonamenty
+refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
+        as select * from Administrator.Abonament@database_main;
+        
+ALTER SNAPSHOT Administrator1.Abonamenty ADD CONSTRAINT PK_ID PRIMARY KEY (id);
 
 CREATE TABLE Administrator1.Zakup
 ( id number(10) NOT NULL,
@@ -76,11 +77,9 @@ CREATE TABLE Administrator1.Zakup
   PRIMARY KEY (id),
   FOREIGN KEY (Sklep) REFERENCES Administrator1.Sklep(id),
   FOREIGN KEY (Nabywca) REFERENCES Administrator1.Nabywca(id),
-  FOREIGN KEY (Rodzajabonamentu) REFERENCES Administrator1.Abonament(id),
+  FOREIGN KEY (Rodzajabonamentu) REFERENCES Administrator1.Abonamenty(id),
   FOREIGN KEY (Mieszanka) REFERENCES Administrator1.MieszankaZiolowa(id)
 );
-
-
 
 INSERT INTO Administrator1.Sklep(id,ulica,Miasto,NrLokalu) 
 Values('1','Malinowa','Wroclaw','4');
@@ -95,14 +94,6 @@ INSERT INTO Administrator1.Nabywca(id,Imie,Nazwisko,Numerkonta,Numertelefonu, Ad
 Values('4','Tomasz','Babka','41114015601081110181488249','511222333','T.babka@gmail.com');
 INSERT INTO Administrator1.Nabywca(id,Imie,Nazwisko,Numerkonta,Numertelefonu, Adresemail)
 Values('5','Robert','Droga','51114015601081110181488249','611222333','R.droga@gmail.com');
-
-INSERT INTO Administrator1.Abonament(id,Nazwa,Okrestrwania,Cena)
-Values('1','Premium Begginer','7','60');
-INSERT INTO Administrator1.Abonament(id,Nazwa,Okrestrwania,Cena)
-Values('2','Premium Intermediate','7','160');
-INSERT INTO Administrator1.Abonament(id,Nazwa,Okrestrwania,Cena)
-Values('3','Premium Proffesional','7','260');
-
 
 INSERT INTO Administrator1.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
 Values('1','Rozgrzejsie','1','100','30');
@@ -122,7 +113,7 @@ Values('1','1','1','3','14-APR-2020','1','1');
 INSERT INTO Administrator1.Zakup(id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu)
 Values('2','1','3','4','15-APR-2020','1','2');
 INSERT INTO Administrator1.Zakup(id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu)
-Values('3','1','6','1','16-APR-2020','1','3');
+Values('3','1','6','1','16-APR-2020','1','2');
 
 -- UPDATE Administrator1.Sklep
 --     SET Miasto = 'NEW YORK' 
@@ -131,19 +122,23 @@ Values('3','1','6','1','16-APR-2020','1','3');
 --     SET Dostepnosc = 0
 --     WHERE id = 1; 
 
-GRANT CREATE MATERIALIZED VIEW TO Administrator1;
-GRANT CREATE DATABASE LINK TO Administrator1;
-
-CREATE SNAPSHOT Administrator1.SklepRefresh
+CREATE SNAPSHOT Administrator1.MieszankaSnapBaza2
 refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
-        as select * from Administrator2.Sklep@database2;
+        as select * from Administrator2.MieszankaZiolowa@database2;
 
-CREATE VIEW Administrator1.WIDOK AS 
-SELECT id,ulica,miasto,nrlokalu FROM Administrator1.Sklep
+CREATE SNAPSHOT Administrator1.MieszankaSnapBaza3
+refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
+        as select * from Administrator3.MieszankaZiolowa@database3;
+
+
+CREATE VIEW Administrator1.WIDOKMIESZANEK AS 
+SELECT id,Nazwa,Sklep,Dostepnosc,Cena FROM Administrator1.MieszankaZiolowa
 UNION ALL
-SELECT id,ulica,miasto,nrlokalu FROM Administrator1.Skleprefresh;
+SELECT id,Nazwa,Sklep,Dostepnosc,Cena FROM Administrator1.MieszankaSnapBaza2
+UNION ALL
+SELECT id,Nazwa,Sklep,Dostepnosc,Cena FROM Administrator1.MieszankaSnapBaza3;
 
-SELECT * FROM Administrator1.WIDOK;
+SELECT * FROM Administrator1.WIDOKMIESZANEK;
 
 --User
 
@@ -169,15 +164,12 @@ GRANT create any trigger TO User1;
 GRANT create any procedure TO User1;
 GRANT create sequence TO User1;
 GRANT create synonym TO User1;
-GRANT SELECT ON Administrator1.widok
-   TO User1;
 
 CREATE DATABASE LINK userlink1
 CONNECT TO USER1 IDENTIFIED BY user123
 USING 'database1';
 
-CREATE SYNONYM User1.TowarySklep1
-   FOR Administrator1.Sklep;
+CREATE SYNONYM User1.TowarySklep
+   FOR Administrator1.WIDOKMIESZANEK;
 
--- select * from User1.TowarySklep1;
 
