@@ -18,6 +18,10 @@ CREATE USER Administrator2
   TEMPORARY TABLESPACE adm2_temp_01
   QUOTA 20M on adm2_perm_01;
 
+GRANT CREATE MATERIALIZED VIEW TO Administrator2;
+GRANT CREATE DATABASE LINK TO Administrator2;
+
+
 GRANT create session TO Administrator2;
 GRANT create table TO Administrator2;
 GRANT create view TO Administrator2;
@@ -26,16 +30,23 @@ GRANT create any procedure TO Administrator2;
 GRANT create sequence TO Administrator2;
 GRANT create synonym TO Administrator2;
 
-GRANT CREATE MATERIALIZED VIEW TO Administrator2;
-GRANT CREATE DATABASE LINK TO Administrator2;
 
 
-CREATE TABLE Administrator2.Sklep
+CREATE SNAPSHOT Administrator2.Sklep2
+refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
+        as select * from Administrator.Sklep2@database_main;
+        
+ALTER SNAPSHOT Administrator2.Sklep2 ADD CONSTRAINT PK_ID1 PRIMARY KEY (id);
+
+CREATE TABLE Administrator2.MieszankaZiolowa
 ( id number(10) NOT NULL,
-  ulica varchar2(50) NOT NULL,
-  Miasto varchar2(50) NOT NULL,
-  NrLokalu number(5),
-  PRIMARY KEY (id)
+  Nazwa varchar2(50) NOT NULL,
+  Sklep number(10) NOT NULL,
+  Dostepnosc number(4),
+  Cena number(5),
+  Zdjecie varchar2(150),
+  PRIMARY KEY (id),
+  FOREIGN KEY (Sklep) references Administrator2.Sklep2(id)
 );
 
 CREATE TABLE Administrator2.Nabywca
@@ -55,16 +66,7 @@ refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
 
 ALTER SNAPSHOT Administrator2.Abonamenty ADD CONSTRAINT PK_ID PRIMARY KEY (id);
 
-CREATE TABLE Administrator2.MieszankaZiolowa
-( id number(10) NOT NULL,
-  Nazwa varchar2(50) NOT NULL,
-  Sklep number(10) NOT NULL,
-  Dostepnosc number(4),
-  Cena number(5),
-  Zdjecie varchar2(150),
-  PRIMARY KEY (id),
-  FOREIGN KEY (Sklep) references Administrator2.Sklep(id)
-);
+
 
 CREATE TABLE Administrator2.Zakup
 ( id number(10) NOT NULL,
@@ -75,17 +77,11 @@ CREATE TABLE Administrator2.Zakup
   Zakupaabonamentu number(1),
   Rodzajabonamentu number(10),
   PRIMARY KEY (id),
-  FOREIGN KEY (Sklep) REFERENCES Administrator2.Sklep(id),
+  FOREIGN KEY (Sklep) REFERENCES Administrator2.Sklep2(id),
   FOREIGN KEY (Nabywca) REFERENCES Administrator2.Nabywca(id),
   FOREIGN KEY (Rodzajabonamentu) REFERENCES Administrator2.Abonamenty(id),
   FOREIGN KEY (Mieszanka) REFERENCES Administrator2.MieszankaZiolowa(id)
 );
-
-
-
-
-INSERT INTO Administrator2.Sklep(id,ulica,Miasto,NrLokalu) 
-Values('1','Truskawkowa','Katowice','11');
 
 INSERT INTO Administrator2.Nabywca(id,Imie,Nazwisko,Numerkonta,Numertelefonu, Adresemail)
 Values('1','Tadeusz','Jedny','11114015601081110181488241','111222331','T.Jedny@gmail.com');
@@ -99,24 +95,24 @@ INSERT INTO Administrator2.Nabywca(id,Imie,Nazwisko,Numerkonta,Numertelefonu, Ad
 Values('5','Robert','Drogowskaz','51114015601081110181488241','611222331','R.Drogowskaz@gmail.com');
 
 INSERT INTO Administrator2.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('1','PielegnujTwarz','1','100','30');
+Values('1','PielegnujTwarz','2','100','30');
 INSERT INTO Administrator2.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('2','PorostWlosow','1','100','30');
+Values('2','PorostWlosow','2','100','30');
 INSERT INTO Administrator2.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('3','Weekendowa','1','75','25');
+Values('3','Weekendowa','2','75','25');
 INSERT INTO Administrator2.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('4','Owocowa','1','75','25');
+Values('4','Owocowa','2','75','25');
 INSERT INTO Administrator2.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('5','Wakacyjna','1','50','35');
+Values('5','Wakacyjna','2','50','35');
 INSERT INTO Administrator2.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('6','ZimowaWichura','1','50','35');
+Values('6','ZimowaWichura','2','50','35');
 
 INSERT INTO Administrator2.Zakup(id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu)
-Values('1','1','3','2','11-APR-2020','1','1');
+Values('1','2','3','2','11-APR-2020','1','1');
 INSERT INTO Administrator2.Zakup(id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu)
-Values('2','1','1','3','1-APR-2020','1','2');
+Values('2','2','1','3','1-APR-2020','1','2');
 INSERT INTO Administrator2.Zakup(id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu)
-Values('3','1','2','4','2-APR-2020','1','2');
+Values('3','2','2','4','2-APR-2020','1','2');
 
 -- UPDATE Administrator2.Sklep
 --     SET Miasto = 'NEW YORK' 

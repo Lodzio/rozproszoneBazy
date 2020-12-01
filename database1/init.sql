@@ -29,13 +29,12 @@ GRANT create any procedure TO Administrator1;
 GRANT create sequence TO Administrator1;
 GRANT create synonym TO Administrator1;
 
-CREATE TABLE Administrator1.Sklep
-( id number(10) NOT NULL,
-  ulica varchar2(50) NOT NULL,
-  Miasto varchar2(50) NOT NULL,
-  NrLokalu number(5),
-  PRIMARY KEY (id)
-);
+CREATE SNAPSHOT Administrator1.Sklep1
+refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
+        as select * from Administrator.Sklep1@database_main;
+        
+ALTER SNAPSHOT Administrator1.Sklep1 ADD CONSTRAINT PK_ID1 PRIMARY KEY (id);
+
 
 CREATE TABLE Administrator1.Nabywca
 (
@@ -57,7 +56,7 @@ CREATE TABLE Administrator1.MieszankaZiolowa
   Cena number(5),
   Zdjecie varchar2(150),
   PRIMARY KEY (id),
-  FOREIGN KEY (Sklep) references Administrator1.Sklep(id)
+  FOREIGN KEY (Sklep) references Administrator1.Sklep1(id)
 );
 
 CREATE SNAPSHOT Administrator1.Abonamenty
@@ -75,14 +74,11 @@ CREATE TABLE Administrator1.Zakup
   Zakupaabonamentu number(1),
   Rodzajabonamentu number(10),
   PRIMARY KEY (id),
-  FOREIGN KEY (Sklep) REFERENCES Administrator1.Sklep(id),
+  FOREIGN KEY (Sklep) REFERENCES Administrator1.Sklep1(id),
   FOREIGN KEY (Nabywca) REFERENCES Administrator1.Nabywca(id),
   FOREIGN KEY (Rodzajabonamentu) REFERENCES Administrator1.Abonamenty(id),
   FOREIGN KEY (Mieszanka) REFERENCES Administrator1.MieszankaZiolowa(id)
 );
-
-INSERT INTO Administrator1.Sklep(id,ulica,Miasto,NrLokalu) 
-Values('1','Malinowa','Wroclaw','4');
 
 INSERT INTO Administrator1.Nabywca(id,Imie,Nazwisko,Numerkonta,Numertelefonu, Adresemail)
 Values('1','Mateusz','Ziaja','11114015601081110181488249','111222333','M.Ziaja@gmail.com');
@@ -171,5 +167,3 @@ USING 'database1';
 
 CREATE SYNONYM User1.TowarySklep
    FOR Administrator1.WIDOKMIESZANEK;
-
-

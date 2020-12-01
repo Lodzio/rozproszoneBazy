@@ -10,6 +10,8 @@ services:
     ports:
       - 49165:1521
   database2:
+    depends_on:
+      - database_main 
     build: ./database2/
     environment:
       ORACLE_ALLOW_REMOTE: 'true'
@@ -17,6 +19,8 @@ services:
     ports:
       - 49166:1521
   database3:
+    depends_on:
+      - database_main
     build: ./database3/
     environment:
       ORACLE_ALLOW_REMOTE: 'true'

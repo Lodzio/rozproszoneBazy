@@ -31,13 +31,11 @@ GRANT create sequence TO Administrator3;
 GRANT create synonym TO Administrator3;
 
 
-CREATE TABLE Administrator3.Sklep
-( id number(10) NOT NULL,
-  ulica varchar2(50) NOT NULL,
-  Miasto varchar2(50) NOT NULL,
-  NrLokalu number(5),
-  PRIMARY KEY (id)
-);
+CREATE SNAPSHOT Administrator3.Sklep3
+refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
+        as select * from Administrator.Sklep3@database_main;
+        
+ALTER SNAPSHOT Administrator3.Sklep3 ADD CONSTRAINT PK_ID1 PRIMARY KEY (id);
 
 CREATE TABLE Administrator3.Nabywca
 (
@@ -64,7 +62,7 @@ CREATE TABLE Administrator3.MieszankaZiolowa
   Cena number(5),
   Zdjecie varchar2(150),
   PRIMARY KEY (id),
-  FOREIGN KEY (Sklep) references Administrator3.Sklep(id)
+  FOREIGN KEY (Sklep) references Administrator3.Sklep3(id)
 );
 
 CREATE TABLE Administrator3.Zakup
@@ -76,16 +74,11 @@ CREATE TABLE Administrator3.Zakup
   Zakupaabonamentu number(1),
   Rodzajabonamentu number(10),
   PRIMARY KEY (id),
-  FOREIGN KEY (Sklep) REFERENCES Administrator3.Sklep(id),
+  FOREIGN KEY (Sklep) REFERENCES Administrator3.Sklep3(id),
   FOREIGN KEY (Nabywca) REFERENCES Administrator3.Nabywca(id),
   FOREIGN KEY (Rodzajabonamentu) REFERENCES Administrator3.Abonamenty(id),
   FOREIGN KEY (Mieszanka) REFERENCES Administrator3.MieszankaZiolowa(id)
 );
-
-
-
-INSERT INTO Administrator3.Sklep(id,ulica,Miasto,NrLokalu) 
-Values('1','Truskawkowa','Katowice','11');
 
 INSERT INTO Administrator3.Nabywca(id,Imie,Nazwisko,Numerkonta,Numertelefonu, Adresemail)
 Values('1','Tadeusz','Jedny','11114015601081110181488241','111222331','T.Jedny@gmail.com');
@@ -99,24 +92,24 @@ INSERT INTO Administrator3.Nabywca(id,Imie,Nazwisko,Numerkonta,Numertelefonu, Ad
 Values('5','Robert','Drogowskaz','51114015601081110181488241','611222331','R.Drogowskaz@gmail.com');
 
 INSERT INTO Administrator3.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('1','PielegnujTwarz','1','100','30');
+Values('1','PielegnujTwarz','3','100','30');
 INSERT INTO Administrator3.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('2','PorostWlosow','1','100','30');
+Values('2','PorostWlosow','3','100','30');
 INSERT INTO Administrator3.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('3','Weekendowa','1','75','25');
+Values('3','Weekendowa','3','75','25');
 INSERT INTO Administrator3.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('4','Owocowa','1','75','25');
+Values('4','Owocowa','3','75','25');
 INSERT INTO Administrator3.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('5','Wakacyjna','1','50','35');
+Values('5','Wakacyjna','3','50','35');
 INSERT INTO Administrator3.MieszankaZiolowa(id,Nazwa,Sklep,Dostepnosc,Cena)
-Values('6','ZimowaWichura','1','50','35');
+Values('6','ZimowaWichura','3','50','35');
 
 INSERT INTO Administrator3.Zakup(id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu)
-Values('1','1','5','2','11-APR-2020','1','1');
+Values('1','3','5','2','11-APR-2020','1','1');
 INSERT INTO Administrator3.Zakup(id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu)
-Values('2','1','1','3','1-APR-2020','1','2');
+Values('2','3','1','3','1-APR-2020','1','2');
 INSERT INTO Administrator3.Zakup(id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu)
-Values('3','1','2','4','2-APR-2020','1','3');
+Values('3','3','2','4','2-APR-2020','1','3');
 
 -- UPDATE Administrator2.Sklep
 --     SET Miasto = 'NEW YORK' 
@@ -138,7 +131,7 @@ refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
 CREATE VIEW Administrator3.WIDOKMIESZANEK AS 
 SELECT id,Nazwa,Sklep,Dostepnosc,Cena FROM Administrator3.MieszankaZiolowa
 UNION ALL
-SELECT id,Nazwa,Sklep,Dostepnosc,Cena FROM Administrator3.MieszankaSnapBaza1;
+SELECT id,Nazwa,Sklep,Dostepnosc,Cena FROM Administrator3.MieszankaSnapBaza1
 UNION ALL
 SELECT id,Nazwa,Sklep,Dostepnosc,Cena FROM Administrator3.MieszankaSnapBaza2;
 
