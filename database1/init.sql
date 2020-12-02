@@ -167,3 +167,58 @@ USING 'database1';
 
 CREATE SYNONYM User1.TowarySklep
    FOR Administrator1.WIDOKMIESZANEK;
+
+
+CREATE VIEW Administrator1.HistoriaSprzedazy1 as 
+select id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu
+FROM Administrator1.Zakup WHERE Mieszanka = 1;
+
+CREATE VIEW Administrator1.HistoriaSprzedazy2 as 
+select id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu
+FROM Administrator1.Zakup WHERE Mieszanka = 2;
+
+CREATE VIEW Administrator1.HistoriaSprzedazy3 as 
+select id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu
+FROM Administrator1.Zakup WHERE Mieszanka = 3;
+
+CREATE VIEW Administrator1.HistoriaSprzedazy4 as 
+select id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu
+FROM Administrator1.Zakup WHERE Mieszanka = 4;
+
+CREATE VIEW Administrator1.HistoriaSprzedazy5 as 
+select id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu
+FROM Administrator1.Zakup WHERE Mieszanka = 5;
+
+CREATE VIEW Administrator1.HistoriaSprzedazy6 as 
+select id,Sklep,Mieszanka,Nabywca,Datazakupu,Zakupaabonamentu,Rodzajabonamentu
+FROM Administrator1.Zakup WHERE Mieszanka = 6;
+
+CREATE SNAPSHOT Administrator1.Nabywca2
+refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
+        as select * from Administrator2.Nabywca@database2;
+
+CREATE SNAPSHOT Administrator1.Nabywca3
+refresh complete start with (sysdate) next  (sysdate+1/1440) with rowid
+        as select * from Administrator3.Nabywca@database3;
+
+CREATE VIEW Administrator1.NabywcaKierownik as 
+select id,Imie,Nazwisko
+FROM Administrator1.Nabywca
+UNION ALL
+select id,Imie,Nazwisko
+FROM Administrator1.Nabywca2
+UNION ALL
+select id,Imie,Nazwisko
+FROM Administrator1.Nabywca3;
+
+CREATE VIEW Administrator1.NabywcaAdmin as 
+select Numerkonta,Numertelefonu, Adresemail
+FROM Administrator1.Nabywca
+UNION ALL
+select Numerkonta,Numertelefonu, Adresemail
+FROM Administrator1.Nabywca2
+UNION ALL
+select Numerkonta,Numertelefonu, Adresemail
+FROM Administrator1.Nabywca3;
+
+
